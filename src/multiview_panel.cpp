@@ -120,15 +120,40 @@ namespace miv_rviz_plugin
 
   void MultiViewPanel::img2rviz(const sensor_msgs::ImageConstPtr& msg, QLabel *target_disp)
   {
+    auto fmt{msg->encoding};
+    auto img_enc{"rgb8"};                     //Default to rgb8
+    auto q_format{QImage::Format_RGB888};     //QImg format
+
     try
     {
-      auto img = cv_bridge::toCvShare(msg, "rgb8")->image;
-      QImage qt_img((uchar*)img.data, img.cols, img.rows, img.step, QImage::Format_RGB888); //Convert to qt format
-      target_disp->setPixmap(QPixmap::fromImage(qt_img));//display the image in label that is created earlier
+      namespace i_enc = sensor_msgs::image_encodings;
+
+      if (fmt == i_enc::RGBA8)
+      {
+        img_enc = "rgba8";
+        q_format = QImage::Format_RGBA8888;
+      }
+      else if (fmt == i_enc::TYPE_8UC1 || fmt == i_enc::TYPE_8SC1 || fmt == i_enc::MONO8)
+      {
+        img_enc = (fmt == i_enc::MONO8) ? "mono8" : "";
+        q_format = QImage::Format_Grayscale8;
+      }
+      else if (fmt == i_enc::TYPE_8UC3 || fmt == i_enc::TYPE_8SC3 || fmt == i_enc::BGR8)
+      {
+        img_enc = (fmt == i_enc::BGR8) ? "bgr8" : "";
+        q_format = QImage::Format_BGR8888;
+      }
+
+      auto img = cv_bridge::toCvShare(msg, img_enc)->image;
+      ROS_WARN("col:%i row:%i step:%d'.",img.cols, img.rows, img.step);
+
+      QImage qt_img( static_cast<uchar*>(img.data), img.cols, img.rows, img.step, q_format); //Convert to qt format
+      target_disp->setPixmap(QPixmap::fromImage(qt_img));
     }
+
     catch (cv_bridge::Exception& e)
     {
-      ROS_ERROR("Could not convert from '%s' to 'rgb8'.", msg->encoding.c_str());
+      ROS_ERROR("Could not convert from '%s' to '%s -> %i'.", fmt.c_str(), img_enc, q_format);
     }
   }
 
@@ -175,71 +200,71 @@ namespace miv_rviz_plugin
 
   // Set the topic name we are subscribing to.
   void MultiViewPanel::setTopic(
-      const QString& new_topic,
-      QString& target_topic,
-      const image_transport::ImageTransport *imt,
-      image_transport::Subscriber &imSub,
-      const int cb_id	)
-  {
-    // Only take action if the name has changed.
-    if( new_topic != target_topic )
+    const QString& new_topic,
+    QString& target_topic,
+    const image_transport::ImageTransport *imt,
+    image_transport::Subscriber &imSub,
+    const int cb_id	)
     {
-      target_topic = new_topic;
-      if( target_topic != "" )
+      // Only take action if the name has changed.
+      if( new_topic != target_topic )
       {
-        image_transport::ImageTransport it(nh_);      // Subscribe img
-        imt = &it;
-        auto cb = {
-          &MultiViewPanel::img0_Callback,
-          &MultiViewPanel::img1_Callback,
-          &MultiViewPanel::img2_Callback,
-          &MultiViewPanel::img3_Callback
-        };
-        imSub = it.subscribe(target_topic.toStdString(), 1, cb.begin()[cb_id], this);
+        target_topic = new_topic;
+        if( target_topic != "" )
+        {
+          image_transport::ImageTransport it(nh_);      // Subscribe img
+          imt = &it;
+          auto cb = {
+            &MultiViewPanel::img0_Callback,
+            &MultiViewPanel::img1_Callback,
+            &MultiViewPanel::img2_Callback,
+            &MultiViewPanel::img3_Callback
+          };
+          imSub = it.subscribe(target_topic.toStdString(), 1, cb.begin()[cb_id], this);
+        }
+        Q_EMIT configChanged();
       }
-      Q_EMIT configChanged();
+    }
+
+    // Save all configuration data from this panel to the given
+    // Config object.  It is important here that you call save()
+    // on the parent class so the class id and panel name get saved.
+    void MultiViewPanel::save( rviz::Config config ) const
+    {
+      rviz::Panel::save( config );
+      config.mapSetValue( "img_0", img_output_topic_0_ );
+      config.mapSetValue( "img_1", img_output_topic_1_ );
+      config.mapSetValue( "img_2", img_output_topic_2_ );
+      config.mapSetValue( "img_3", img_output_topic_3_ );
+    }
+
+    // Load all configuration data for this panel from the given Config object.
+    void MultiViewPanel::load( const rviz::Config& config )
+    {
+      rviz::Panel::load( config );
+      QString topic;
+      if( config.mapGetString( "img_0", &topic ))
+      {
+        img_topic_edit_0_->setText( topic );
+        updateImgTopic_0();
+      }
+      if( config.mapGetString( "img_1", &topic ))
+      {
+        img_topic_edit_1_->setText( topic );
+        updateImgTopic_1();
+      }
+      if( config.mapGetString( "img_2", &topic ))
+      {
+        img_topic_edit_2_->setText( topic );
+        updateImgTopic_2();
+      }
+      if( config.mapGetString( "img_3", &topic ))
+      {
+        img_topic_edit_3_->setText( topic );
+        updateImgTopic_3();
+      }
     }
   }
 
-  // Save all configuration data from this panel to the given
-  // Config object.  It is important here that you call save()
-  // on the parent class so the class id and panel name get saved.
-  void MultiViewPanel::save( rviz::Config config ) const
-  {
-    rviz::Panel::save( config );
-    config.mapSetValue( "img_0", img_output_topic_0_ );
-    config.mapSetValue( "img_1", img_output_topic_1_ );
-    config.mapSetValue( "img_2", img_output_topic_2_ );
-    config.mapSetValue( "img_3", img_output_topic_3_ );
-  }
-
-  // Load all configuration data for this panel from the given Config object.
-  void MultiViewPanel::load( const rviz::Config& config )
-  {
-    rviz::Panel::load( config );
-    QString topic;
-    if( config.mapGetString( "img_0", &topic ))
-    {
-      img_topic_edit_0_->setText( topic );
-      updateImgTopic_0();
-    }
-    if( config.mapGetString( "img_1", &topic ))
-    {
-      img_topic_edit_1_->setText( topic );
-      updateImgTopic_1();
-    }
-    if( config.mapGetString( "img_2", &topic ))
-    {
-      img_topic_edit_2_->setText( topic );
-      updateImgTopic_2();
-    }
-    if( config.mapGetString( "img_3", &topic ))
-    {
-      img_topic_edit_3_->setText( topic );
-      updateImgTopic_3();
-    }
-  }
-}
-
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(miv_rviz_plugin::MultiViewPanel,rviz::Panel )
+  #include <pluginlib/class_list_macros.h>
+  PLUGINLIB_EXPORT_CLASS(miv_rviz_plugin::MultiViewPanel,rviz::Panel )
