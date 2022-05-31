@@ -42,8 +42,8 @@ namespace miv_rviz_plugin
     public Q_SLOTS:
 
     void setTopic(
-      const QString& new_topic,
-      QString& target_topic,
+      QLineEdit *line_edit,
+      QString &target_topic,
       const image_transport::ImageTransport *imt,
       image_transport::Subscriber &imSub,
       const int cb_id	);

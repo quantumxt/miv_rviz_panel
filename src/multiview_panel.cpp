@@ -93,7 +93,7 @@ namespace miv_rviz_plugin
 
     catch (cv_bridge::Exception& e)
     {
-      ROS_ERROR("Could not convert from '%s' to '%s -> %i'.", fmt.c_str(), img_enc, q_format);
+      ROS_ERROR("Could not convert from '%s' to '%s -> QIMAGE: %i'.", fmt.c_str(), img_enc, q_format);
     }
   }
 
@@ -119,7 +119,7 @@ namespace miv_rviz_plugin
 
   // Read the topic name from the QLineEdit
   void MultiViewPanel::locate_set_topic(const int &id){
-    setTopic( itopic_edit[id]->text(),  img_output_topic[id], it_[id], img_sub[id], id);
+    setTopic( itopic_edit[id],  img_output_topic[id], it_[id], img_sub[id], id);
   }
 
   void MultiViewPanel::updateImgTopic_0()
@@ -144,16 +144,16 @@ namespace miv_rviz_plugin
 
   // Set the topic name we are subscribing to.
   void MultiViewPanel::setTopic(
-    const QString& new_topic,
+    QLineEdit * line_edit,
     QString& target_topic,
     const image_transport::ImageTransport *imt,
     image_transport::Subscriber &img_sub,
     const int cb_id	)
     {
       // Only take action if the name has changed.
-      if( new_topic != target_topic )
+      if( line_edit->text() != target_topic )
       {
-        target_topic = new_topic;
+        target_topic = line_edit->text();
         if( target_topic != "" )
         {
           image_transport::ImageTransport it(nh_);      // Subscribe img
@@ -164,7 +164,16 @@ namespace miv_rviz_plugin
             &MultiViewPanel::img2_Callback,
             &MultiViewPanel::img3_Callback
           };
-          img_sub = it.subscribe(target_topic.toStdString(), 1, cb.begin()[cb_id], this);
+          // Sanitise data
+          auto tp{target_topic.toStdString()};
+          tp.erase(std::remove_if(tp.begin(), tp.end(),
+                           [](char c) {
+                               return (c == ' ' || c == '\n' || c == '\r' ||
+                                       c == '\t' || c == '\v' || c == '\f');
+                           }),
+                           tp.end());
+          line_edit->setText(QString::fromStdString(tp));           // Update sanitised string
+          img_sub = it.subscribe(tp, 1, cb.begin()[cb_id], this);
         }
         Q_EMIT configChanged();
       }
