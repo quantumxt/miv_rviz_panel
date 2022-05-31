@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>miv_rviz_plugin</name>
-  <version>0.1.0</version>
+  <version>0.1.2</version>
   <description>A Multi Image Viewer for Rviz.</description>
 
   <maintainer email="dev@cyaninfinite.com">WK</maintainer>

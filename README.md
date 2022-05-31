@@ -2,7 +2,7 @@
 
 A multi-image gridview panel widget to display various image feed in a 2x2 grid.
 
-> Currently support most 8bit image type for  **sensor_msgs/Image/** message. ( `rgb8`, `rgba8`, `mono8` & `bgr8`)
+> Currently support most 8bit image type for  **sensor_msgs/Image/** message. ( `rgb8`, `rgba8`, `mono8`)
 
 ![](assets/miv_main.png)
 
