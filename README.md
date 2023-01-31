@@ -11,14 +11,14 @@ A multi-image gridview panel widget to display various image feed in a 2x2 grid.
 Clone the repository into the `src` directory of your current workspace.
 
 ```bash
-git clone https://github.com/1487quantum/miv_rviz_plugin.git
+git clone https://github.com/quantumxt/miv_rviz_panel.git
 ```
 
 After that, compile and re-source the workspace.
 
 ```bash
 cd ~/catkin_ws
-catkin build miv_rviz_plugin
+catkin build miv_rviz_panel
 source ~/catkin_ws/devel/setup.bash
 ```
 
@@ -28,4 +28,4 @@ The plugin should be available to be added into Rviz. (Through Panels > Add New 
 
 
 ## License
-<a href="LICENSE" ><img src="https://img.shields.io/github/license/1487quantum/miv_rviz_panel?style=flat-square"/></a>
+<a href="LICENSE" ><img src="https://img.shields.io/github/license/quantumxt/miv_rviz_panel?style=flat-square"/></a>
