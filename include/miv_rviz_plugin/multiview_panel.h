@@ -2,14 +2,14 @@
 #define VIEW_PANEL_H
 
 #ifndef Q_MOC_RUN
-#include <ros/ros.h>
-#include <rviz/panel.h>
 
-#include <geometry_msgs/Twist.h>
-#include <sensor_msgs/Image.h>
-#include <image_transport/image_transport.h>
+#include <rclcpp/rclcpp.hpp>
+#include <rviz_common/panel.hpp>
 
-#include <cv_bridge/cv_bridge.h>
+#include "geometry_msgs/msg/twist.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "image_transport/image_transport.hpp"
+#include "cv_bridge/cv_bridge.h"
 
 #endif
 
@@ -19,7 +19,7 @@ class QLabel;
 namespace miv_rviz_plugin
 {
 
-  class MultiViewPanel: public rviz::Panel
+  class MultiViewPanel: public rviz_common::Panel
   {
     Q_OBJECT
   public:
@@ -29,8 +29,8 @@ namespace miv_rviz_plugin
     // Now we declare overrides of rviz::Panel functions for saving and
     // loading data from the config file.  Here the data is the
     // topic name.
-    virtual void load( const rviz::Config& config );
-    virtual void save( rviz::Config config ) const;
+    virtual void load( const rviz_common::Config& config );
+    virtual void save( rviz_common::Config config ) const;
     void img2rviz(const sensor_msgs::ImageConstPtr& msg, QLabel *target_disp);
 
     void img0_Callback(const sensor_msgs::ImageConstPtr& msg);
