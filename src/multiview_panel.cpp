@@ -9,12 +9,12 @@
 #include <QImage>
 #include <QTimer>
 
-#include "miv_rviz_plugin/multiview_panel.h"
+#include "miv_rviz_plugin/multiview_panel.hpp"
 
 namespace miv_rviz_plugin
-{
+{ 
   MultiViewPanel::MultiViewPanel(QWidget* parent):
-  rviz::Panel( parent )
+  rviz_common::Panel( parent )
   {
     QGroupBox* view_layout_[4];
     QVBoxLayout* view_box_layout_[4];
@@ -66,7 +66,7 @@ namespace miv_rviz_plugin
     connect( itopic_edit[3], SIGNAL( editingFinished() ), this, SLOT( updateImgTopic_3() ));
   }
 
-  void MultiViewPanel::img2rviz(const sensor_msgs::ImageConstPtr& msg, QLabel *target_disp)
+  void MultiViewPanel::img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp)
   {
     auto fmt{msg->encoding};
     auto img_enc{"rgb8"};                     //Default to rgb8
@@ -93,26 +93,27 @@ namespace miv_rviz_plugin
 
     catch (cv_bridge::Exception& e)
     {
-      ROS_ERROR("Could not convert from '%s' to '%s -> QIMAGE: %i'.", fmt.c_str(), img_enc, q_format);
+      RVIZ_COMMON_LOG_ERROR("Could not convert image format...");
+      // ROS_ERROR("Could not convert from '%s' to '%s -> QIMAGE: %i'.", fmt.c_str(), img_enc, q_format);
     }
   }
 
-  void MultiViewPanel::img0_Callback(const sensor_msgs::ImageConstPtr& msg)
+  void MultiViewPanel::img0_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
   {
     img2rviz(msg, img_view[0]);
   }
 
-  void MultiViewPanel::img1_Callback(const sensor_msgs::ImageConstPtr& msg)
+  void MultiViewPanel::img1_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
   {
     img2rviz(msg, img_view[1]);
   }
 
-  void MultiViewPanel::img2_Callback(const sensor_msgs::ImageConstPtr& msg)
+  void MultiViewPanel::img2_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
   {
     img2rviz(msg, img_view[2]);
   }
 
-  void MultiViewPanel::img3_Callback(const sensor_msgs::ImageConstPtr& msg)
+  void MultiViewPanel::img3_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
   {
     img2rviz(msg, img_view[3]);
   }
@@ -156,7 +157,9 @@ namespace miv_rviz_plugin
         target_topic = line_edit->text();
         if( target_topic != "" )
         {
-          image_transport::ImageTransport it(nh_);      // Subscribe img
+          rclcpp::NodeOptions options;
+          node_ = rclcpp::Node::make_shared("image_listener", options);
+          image_transport::ImageTransport it(node_);      // Subscribe img
           imt = &it;
           auto cb = {
             &MultiViewPanel::img0_Callback,
@@ -180,9 +183,9 @@ namespace miv_rviz_plugin
     }
 
     // Save all configuration data from this panel to the given Config object.
-    void MultiViewPanel::save( rviz::Config config ) const
+    void MultiViewPanel::save( rviz_common::Config config ) const
     {
-      rviz::Panel::save( config );
+      rviz_common::Panel::save( config );
       char tmp[10];
       for(int i{0}; i<4; ++i){
         sprintf(tmp,"img_%i",i);
@@ -191,9 +194,9 @@ namespace miv_rviz_plugin
     }
 
     // Load all configuration data for this panel from the given Config object.
-    void MultiViewPanel::load( const rviz::Config& config )
+    void MultiViewPanel::load( const rviz_common::Config& config )
     {
-      rviz::Panel::load( config );
+      rviz_common::Panel::load( config );
       QString topic;
       if( config.mapGetString( "img_0", &topic ))
       {
@@ -218,5 +221,5 @@ namespace miv_rviz_plugin
     }
   }
 
-  #include <pluginlib/class_list_macros.h>
-  PLUGINLIB_EXPORT_CLASS(miv_rviz_plugin::MultiViewPanel,rviz::Panel )
+  #include <pluginlib/class_list_macros.hpp>
+  PLUGINLIB_EXPORT_CLASS(miv_rviz_plugin::MultiViewPanel, rviz_common::Panel)

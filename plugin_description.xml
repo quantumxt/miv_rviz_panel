@@ -1,7 +1,7 @@
-<library path="lib/libmiv_rviz_plugin">
+<library path="miv_rviz_plugin">
   <class name="miv_rviz_plugin/MultiViewPlugin"
          type="miv_rviz_plugin::MultiViewPanel"
-         base_class_type="rviz::Panel">
+         base_class_type="rviz_common::Panel">
     <description>
       A multi-image gridview panel widget to display various image feed in a 2x2 grid.
     </description>

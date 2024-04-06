@@ -1,12 +1,15 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.12)
 project(miv_rviz_plugin)
+
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PKG_DEPENDENCIES
   rclcpp
@@ -34,16 +37,18 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
 
-## I prefer the Qt signals and slots to avoid defining "emit", "slots",
+## Prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 add_definitions(-DQT_NO_KEYWORDS)
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME} SHARED
+  include/miv_rviz_plugin/multiview_panel.hpp
   src/multiview_panel.cpp
 )
 
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(
+  ${PROJECT_NAME}
   ${PKG_DEPENDENCIES}
 )
 
@@ -55,9 +60,12 @@ target_link_libraries(
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-install(TARGETS
-  ${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME}
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib  
+  INCLUDES DESTINATION include/${PROJECT_NAME}
 )
 
 pluginlib_export_plugin_description_file(
@@ -66,6 +74,13 @@ pluginlib_export_plugin_description_file(
 )
 
 # replaces catkin_package(LIBRARIES ${PROJECT_NAME}) 
-ament_export_libraries(${PROJECT_NAME})
+ament_export_libraries(
+  ${PROJECT_NAME}
+)
+
+#https://robotics.stackexchange.com/questions/104478/rviz2-custom-panel-plugin-could-not-load-library-dlopen-error-undefined-symbo
+ament_export_targets(
+  export_${PROJECT_NAME}
+)
 
 ament_package()

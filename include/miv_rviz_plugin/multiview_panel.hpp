@@ -1,10 +1,11 @@
-#ifndef VIEW_PANEL_H
-#define VIEW_PANEL_H
+#ifndef MULTIVIEW_PANEL_HPP_
+#define MULTIVIEW_PANEL_HPP_
 
 #ifndef Q_MOC_RUN
 
 #include <rclcpp/rclcpp.hpp>
 #include <rviz_common/panel.hpp>
+#include <rviz_common/logging.hpp>
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "sensor_msgs/msg/image.hpp"
@@ -31,12 +32,12 @@ namespace miv_rviz_plugin
     // topic name.
     virtual void load( const rviz_common::Config& config );
     virtual void save( rviz_common::Config config ) const;
-    void img2rviz(const sensor_msgs::ImageConstPtr& msg, QLabel *target_disp);
+    void img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp);
 
-    void img0_Callback(const sensor_msgs::ImageConstPtr& msg);
-    void img1_Callback(const sensor_msgs::ImageConstPtr& msg);
-    void img2_Callback(const sensor_msgs::ImageConstPtr& msg);
-    void img3_Callback(const sensor_msgs::ImageConstPtr& msg);
+    void img0_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+    void img1_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+    void img2_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+    void img3_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
 
     // Next come a couple of public Qt slots.
     public Q_SLOTS:
@@ -92,10 +93,9 @@ namespace miv_rviz_plugin
       // image_transport::ImageTransport *it_3_;
       image_transport::ImageTransport* it_[4];
 
-      // The ROS node handle.
-      ros::NodeHandle nh_;
+      rclcpp::Node::SharedPtr node_;
     };
 
   }
 
-  #endif
+  #endif  // MULTIVIEW_PANEL_HPP_
