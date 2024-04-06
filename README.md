@@ -2,7 +2,7 @@
 
 A multi-image gridview panel widget to display various image feed in a 2x2 grid.
 
-**Note:** This is a partial ROS2 port of the original Multi-Image View Rviz plugin. The port is currently WIP, and the plugin package **does not compile** for now.
+**Note:** This is a partial ROS2 port of the original Multi-Image View Rviz plugin. The port is currently WIP, and the plugin package **does not display the subscribed image(s)** for now.
 
 > Currently support most 8bit image type for  **sensor_msgs/msg/Image/** message. ( `rgb8`, `rgba8`, `mono8`)
 
