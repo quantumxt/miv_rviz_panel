@@ -9,6 +9,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rviz_common/panel.hpp>
+#include <rviz_common/ros_integration/ros_node_abstraction_iface.hpp>
 #include <rviz_common/logging.hpp>
 
 #include "geometry_msgs/msg/twist.hpp"
@@ -30,6 +31,7 @@ namespace miv_rviz_plugin
   public:
 
     MultiViewPanel( QWidget* parent = 0 );
+    void onInitialize() override;
 
     // Now we declare overrides of rviz::Panel functions for saving and
     // loading data from the config file.  Here the data is the
@@ -38,10 +40,7 @@ namespace miv_rviz_plugin
     virtual void save( rviz_common::Config config ) const;
     void img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp);
 
-    void img0_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
-    void img1_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
-    void img2_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
-    void img3_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+    void imgCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg, const int &img_id);
 
     // Next come a couple of public Qt slots.
     public Q_SLOTS:
@@ -50,7 +49,7 @@ namespace miv_rviz_plugin
       QLineEdit *line_edit,
       QString &target_topic,
       image_transport::Subscriber &imSub,
-      const int cb_id	);
+      const int callback_id	);
 
       // Here we declare some internal slots.
     protected Q_SLOTS:
@@ -72,9 +71,8 @@ namespace miv_rviz_plugin
       // Image subscribers
       image_transport::Subscriber img_sub[4];
 
+      std::shared_ptr<rviz_common::ros_integration::RosNodeAbstractionIface> rviz_node_ptr_;
       rclcpp::Node::SharedPtr node_;
-      std::thread node_thread_;
-      bool node_spinning_;  // Flag to track if the node is spinning
     };
 
   }

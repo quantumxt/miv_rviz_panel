@@ -7,6 +7,8 @@
 #include <QLabel>
 #include <QImage>
 
+#include <rviz_common/display_context.hpp>
+
 #include "miv_rviz_plugin/multiview_panel.hpp"
 
 namespace miv_rviz_plugin
@@ -63,6 +65,11 @@ namespace miv_rviz_plugin
     connect(itopic_edit[3], SIGNAL(editingFinished()), this, SLOT(updateImgTopic_3()));
   }
 
+
+  void MultiViewPanel::onInitialize() {
+    rviz_node_ptr_ = getDisplayContext()->getRosNodeAbstraction().lock();
+  }
+
   void MultiViewPanel::img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp)
   {
     auto fmt{msg->encoding};
@@ -107,24 +114,9 @@ namespace miv_rviz_plugin
     }
   }
 
-  void MultiViewPanel::img0_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
+  void MultiViewPanel::imgCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg, const int & img_id)
   {
-    img2rviz(msg, img_view[0]);
-  }
-
-  void MultiViewPanel::img1_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
-  {
-    img2rviz(msg, img_view[1]);
-  }
-
-  void MultiViewPanel::img2_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
-  {
-    img2rviz(msg, img_view[2]);
-  }
-
-  void MultiViewPanel::img3_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
-  {
-    img2rviz(msg, img_view[3]);
+    img2rviz(msg, img_view[img_id]);
   }
 
   // Read the topic name from the QLineEdit
@@ -157,7 +149,7 @@ namespace miv_rviz_plugin
     QLineEdit * line_edit,
     QString& target_topic,
     image_transport::Subscriber &img_sub,
-    const int cb_id	)
+    const int callback_id	)
     {
       // Only take action if the name has changed.
       if( line_edit->text() != target_topic )
@@ -166,39 +158,24 @@ namespace miv_rviz_plugin
         if( target_topic != "" )
         {
           if (node_ == nullptr) {
-            rclcpp::NodeOptions options;
-            node_ = rclcpp::Node::make_shared("mvp_img_listener", options);
+            node_ = rviz_node_ptr_->get_raw_node();
           }
-          auto cb = {
-            &MultiViewPanel::img0_Callback,
-            &MultiViewPanel::img1_Callback,
-            &MultiViewPanel::img2_Callback,
-            &MultiViewPanel::img3_Callback
-          };
           // Sanitise data
           auto img_topic = target_topic.toStdString();
           img_topic.erase(std::remove_if(img_topic.begin(), img_topic.end(), [](char c) {
               return std::isspace(static_cast<unsigned char>(c));  // Efficient whitespace check
           }), img_topic.end());
           line_edit->setText(QString::fromStdString(img_topic));  // Update sanitized string
-          std::cout << "View " << cb_id << ": Subscribing to topic [" << img_topic << "]" << std::endl;
+          std::cout << "View " << callback_id << ": Subscribing to topic [" << img_topic << "]" << std::endl;
 
           image_transport::ImageTransport it(node_);      // Subscribe img
-          image_transport::TransportHints hints(node_.get());
-          img_sub = it.subscribe(img_topic, 1, cb.begin()[cb_id], this);
+          img_sub = it.subscribe(
+            img_topic,
+            1,
+            std::bind(&MultiViewPanel::imgCallback, this, std::placeholders::_1, callback_id)
+            );
         }
         Q_EMIT configChanged();
-
-        if (!node_spinning_){
-            node_spinning_ = true;
-
-            // Spin node in a separate thread (to avoid blocking the GUI)
-            node_thread_ = std::thread([this]() {
-                rclcpp::spin(node_);
-                node_spinning_ = false;
-            });
-            node_thread_.detach();
-        }
       }
     }
 
