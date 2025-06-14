@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include <QLineEdit>
+#include <QComboBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -18,6 +19,12 @@ namespace miv_rviz_plugin
   {
     QGroupBox* view_layout_[IMG_COUNT];
     QHBoxLayout* topic_layout_[IMG_COUNT];
+
+    combo_box_ = new QComboBox;
+    combo_box_->addItem("2X2");
+    combo_box_->addItem("4X1");
+
+    connect(combo_box_, &QComboBox::currentTextChanged, this, &MultiViewPanel::onComboBoxChanged);
 
     for(int i{0}; i < IMG_COUNT; ++i){
       // Group View Layout
@@ -56,7 +63,9 @@ namespace miv_rviz_plugin
       layout->addLayout(topic_layout_[i], i + 2, 0, 1, 2);
     }
 
-    setLayout( layout );
+    // Add combo box layout
+    layout->addWidget(combo_box_, IMG_COUNT + 2, 0, 1, 2);
+    setLayout(layout);
 
     // Next we make signal connections.
     connect(itopic_edit[0], SIGNAL(editingFinished()), this, SLOT(updateImgTopic_0()));
@@ -65,9 +74,14 @@ namespace miv_rviz_plugin
     connect(itopic_edit[3], SIGNAL(editingFinished()), this, SLOT(updateImgTopic_3()));
   }
 
-
   void MultiViewPanel::onInitialize() {
     rviz_node_ptr_ = getDisplayContext()->getRosNodeAbstraction().lock();
+  }
+
+  void MultiViewPanel::onComboBoxChanged(const QString& text)
+  {
+    // RCLCPP_INFO(rclcpp::get_logger("MyPanel"), "Selected: %s", text.toStdString().c_str());
+    std::cout << "Selected option: " << text.toStdString() << std::endl;
   }
 
   void MultiViewPanel::img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp)

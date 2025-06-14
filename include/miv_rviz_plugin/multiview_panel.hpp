@@ -21,6 +21,7 @@
 
 class QLineEdit;
 class QLabel;
+class QComboBox;
 
 namespace miv_rviz_plugin
 {
@@ -53,6 +54,8 @@ namespace miv_rviz_plugin
 
       // Here we declare some internal slots.
     protected Q_SLOTS:
+      void onComboBoxChanged(const QString& text);
+
       void updateImgTopic(const int &id);
       void updateImgTopic_0();
       void updateImgTopic_1();
@@ -60,6 +63,7 @@ namespace miv_rviz_plugin
       void updateImgTopic_3();
 
     protected:
+      QComboBox* combo_box_;
       QLineEdit* itopic_edit[4];
 
       // Current output topic.
