@@ -64,16 +64,16 @@ namespace miv_rviz_plugin
 
     protected:
       QComboBox* combo_box_;
-      QLineEdit* itopic_edit[4];
+      QLineEdit* itopic_edit[IMG_COUNT];
 
       // Current output topic.
-      QString img_output_topic[4];
+      QString img_output_topic[IMG_COUNT];
 
       // Image Views -> Qlabel used to display images
-      QLabel* img_view[4];
+      QLabel* img_view[IMG_COUNT];
 
       // Image subscribers
-      image_transport::Subscriber img_sub[4];
+      image_transport::Subscriber img_sub[IMG_COUNT];
 
       std::shared_ptr<rviz_common::ros_integration::RosNodeAbstractionIface> rviz_node_ptr_;
       rclcpp::Node::SharedPtr node_;
