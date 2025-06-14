@@ -40,10 +40,7 @@ namespace miv_rviz_plugin
     virtual void save( rviz_common::Config config ) const;
     void img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp);
 
-    void img0_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
-    void img1_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
-    void img2_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
-    void img3_Callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+    void imgCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg, const int &img_id);
 
     // Next come a couple of public Qt slots.
     public Q_SLOTS:
@@ -52,7 +49,7 @@ namespace miv_rviz_plugin
       QLineEdit *line_edit,
       QString &target_topic,
       image_transport::Subscriber &imSub,
-      const int cb_id	);
+      const int callback_id	);
 
       // Here we declare some internal slots.
     protected Q_SLOTS:
