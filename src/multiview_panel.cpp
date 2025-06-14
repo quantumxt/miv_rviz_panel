@@ -7,6 +7,8 @@
 #include <QLabel>
 #include <QImage>
 
+#include <rviz_common/display_context.hpp>
+
 #include "miv_rviz_plugin/multiview_panel.hpp"
 
 namespace miv_rviz_plugin
@@ -61,6 +63,11 @@ namespace miv_rviz_plugin
     connect(itopic_edit[1], SIGNAL(editingFinished()), this, SLOT(updateImgTopic_1()));
     connect(itopic_edit[2], SIGNAL(editingFinished()), this, SLOT(updateImgTopic_2()));
     connect(itopic_edit[3], SIGNAL(editingFinished()), this, SLOT(updateImgTopic_3()));
+  }
+
+
+  void MultiViewPanel::onInitialize() {
+    rviz_node_ptr_ = getDisplayContext()->getRosNodeAbstraction().lock();
   }
 
   void MultiViewPanel::img2rviz(const sensor_msgs::msg::Image::ConstSharedPtr & msg, QLabel *target_disp)
@@ -166,8 +173,7 @@ namespace miv_rviz_plugin
         if( target_topic != "" )
         {
           if (node_ == nullptr) {
-            rclcpp::NodeOptions options;
-            node_ = rclcpp::Node::make_shared("mvp_img_listener", options);
+            node_ = rviz_node_ptr_->get_raw_node();
           }
           auto cb = {
             &MultiViewPanel::img0_Callback,
@@ -188,17 +194,6 @@ namespace miv_rviz_plugin
           img_sub = it.subscribe(img_topic, 1, cb.begin()[cb_id], this);
         }
         Q_EMIT configChanged();
-
-        if (!node_spinning_){
-            node_spinning_ = true;
-
-            // Spin node in a separate thread (to avoid blocking the GUI)
-            node_thread_ = std::thread([this]() {
-                rclcpp::spin(node_);
-                node_spinning_ = false;
-            });
-            node_thread_.detach();
-        }
       }
     }
 

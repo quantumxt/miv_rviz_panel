@@ -9,6 +9,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rviz_common/panel.hpp>
+#include <rviz_common/ros_integration/ros_node_abstraction_iface.hpp>
 #include <rviz_common/logging.hpp>
 
 #include "geometry_msgs/msg/twist.hpp"
@@ -30,6 +31,7 @@ namespace miv_rviz_plugin
   public:
 
     MultiViewPanel( QWidget* parent = 0 );
+    void onInitialize() override;
 
     // Now we declare overrides of rviz::Panel functions for saving and
     // loading data from the config file.  Here the data is the
@@ -72,9 +74,8 @@ namespace miv_rviz_plugin
       // Image subscribers
       image_transport::Subscriber img_sub[4];
 
+      std::shared_ptr<rviz_common::ros_integration::RosNodeAbstractionIface> rviz_node_ptr_;
       rclcpp::Node::SharedPtr node_;
-      std::thread node_thread_;
-      bool node_spinning_;  // Flag to track if the node is spinning
     };
 
   }
